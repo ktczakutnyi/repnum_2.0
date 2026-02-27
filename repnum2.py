@@ -21,8 +21,14 @@ import os
 import shutil
 import time
 
+<<<<<<< codex/update-report-number-generation-process-99aauc
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SOURCE_FILE = os.path.join(BASE_DIR, 'repnum.txt')
+TARGET_FILE = os.path.join(BASE_DIR, 'repnum2.txt')
+=======
 SOURCE_FILE = 'repnum.txt'
 TARGET_FILE = 'repnum2.txt'
+>>>>>>> main
 
 
 def get_current_date_time():
@@ -76,7 +82,15 @@ def main():
     report_number = read_last_report_number(TARGET_FILE)
 
     while True:
+<<<<<<< codex/update-report-number-generation-process-99aauc
+        try:
+            user_input = input('Press Enter for next report number or type q to exit: ').strip().lower()
+        except EOFError:
+            print('\nNo input stream detected. Exiting program.')
+            break
+=======
         user_input = input('Press Enter for next report number or type q to exit: ').strip().lower()
+>>>>>>> main
 
         if user_input == 'q':
             break
