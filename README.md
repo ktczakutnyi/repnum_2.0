@@ -51,6 +51,8 @@ When run, the script:
 
 It continues doing this forever until you type `q`.
 
+On Windows, if standard input is unavailable, the script automatically switches to keyboard mode so **Enter** and `q` still work.
+
 ---
 
 ## 📂 Files Used
@@ -82,6 +84,8 @@ MM-DD-YYYY  HH:MM:SS  ######
 
 ```
 
+Timestamp note: the script writes fixed **EST (UTC-5)** time.
+
 Example:
 ```
 
@@ -100,7 +104,7 @@ This creates a legally defensible audit trail:
 
 ## 🖥️ Requirements
 
-- Python **3.x**
+- Python **2.5.2+** (primary target) or **3.x**
 - No external packages
 - Runs on:
   - Windows
@@ -128,6 +132,12 @@ Open a terminal in the folder containing the script and run:
 
 ```
 python repnum2.py
+```
+
+On Windows PowerShell (when using Python 2.5 specifically):
+
+```
+py -2.5 repnum2.py
 ```
 
 You will see:
@@ -256,6 +266,8 @@ Use PowerShell or Command Prompt and run:
 python repnum2.py
 ```
 
+If input is still unavailable, the script switches to Windows keyboard mode and continues accepting **Enter** and `q`.
+
 ---
 
 ## 🧯 Important Operational Rule
@@ -276,7 +288,7 @@ Because administratively… it is.
 | Date | Version | Notes |
 |------|------|------|
 | Sept 2009 | 1.0 | Original OEMA calibration number generator |
-| March 2026 | 2.0 | Python 3 compatibility, safer file handling, better reliability |
+| March 2026 | 2.0 | Python 2.5.2+ support, Python 3 compatibility, fixed EST timestamps, safer file handling |
 
 ---
 

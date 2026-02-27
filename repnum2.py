@@ -6,7 +6,7 @@
 # Author:  K. Zakutnyi
 #
 # Language:  Python 2.5
-# Language:  Python 3
+# Language:  Python 2.5
 #
 # Revision History:
 #
@@ -27,7 +27,8 @@ TARGET_FILE = os.path.join(BASE_DIR, 'repnum2.txt')
 
 
 def get_current_date_time():
-    (yyyy, mm, dd, hr, minute, sec, wday, yday, isdst) = time.localtime()
+    est_seconds = time.time() - (5 * 60 * 60)
+    (yyyy, mm, dd, hr, minute, sec, wday, yday, isdst) = time.gmtime(est_seconds)
     cur_date = str(mm).zfill(2) + '-' + str(dd).zfill(2) + '-' + str(yyyy)
     cur_time = str(hr).zfill(2) + ':' + str(minute).zfill(2) + ':' + str(sec).zfill(2)
     return cur_date, cur_time
@@ -38,11 +39,14 @@ def read_last_report_number(file_path):
         return 0
 
     last_number = 0
-    with open(file_path, 'r', encoding='utf-8', errors='ignore') as report_file:
+    report_file = open(file_path, 'r')
+    try:
         for line in report_file:
             word = line.split()
             if len(word) >= 3 and word[2].isdigit():
                 last_number = int(word[2])
+    finally:
+        report_file.close()
     return last_number
 
 
@@ -62,13 +66,36 @@ def get_next_report_number(current_number):
 
 def append_report_number(file_path, report_number):
     cur_date, cur_time = get_current_date_time()
-    with open(file_path, 'a', encoding='utf-8') as report_file:
+    report_file = open(file_path, 'a')
+    try:
         report_file.write('%10s  %8s %6d\n' % (cur_date, cur_time, report_number))
+    finally:
+        report_file.close()
+
+
+def get_text_input(prompt):
+    try:
+        return raw_input(prompt)
+    except NameError:
+        return input(prompt)
+
+
+def read_windows_key(msvcrt_module):
+    if hasattr(msvcrt_module, 'getwch'):
+        return msvcrt_module.getwch()
+
+    key = msvcrt_module.getch()
+    if not key:
+        return ''
+    try:
+        return key.decode('utf-8', 'ignore')
+    except Exception:
+        return key
 
 
 def read_user_command():
     try:
-        return input('Press Enter for next report number or type q to exit: ').strip().lower()
+        return get_text_input('Press Enter for next report number or type q to exit: ').strip().lower()
     except EOFError:
         if os.name != 'nt':
             print('\nNo interactive input stream detected. Exiting program.')
@@ -80,7 +107,7 @@ def read_user_command():
         import msvcrt
 
         while True:
-            key = msvcrt.getwch().lower()
+            key = read_windows_key(msvcrt).lower()
             if key in ('\r', '\n'):
                 print('')
                 return ''
