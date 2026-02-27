@@ -101,6 +101,11 @@ def main():
 
     while True:
         user_input = read_user_command()
+        try:
+            user_input = input('Press Enter for next report number or type q to exit: ').strip().lower()
+        except EOFError:
+            print('\nNo input stream detected. Exiting program.')
+            break
 
         if user_input == 'q':
             break
