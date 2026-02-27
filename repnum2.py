@@ -21,14 +21,9 @@ import os
 import shutil
 import time
 
-<<<<<<< codex/update-report-number-generation-process-99aauc
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_FILE = os.path.join(BASE_DIR, 'repnum.txt')
 TARGET_FILE = os.path.join(BASE_DIR, 'repnum2.txt')
-=======
-SOURCE_FILE = 'repnum.txt'
-TARGET_FILE = 'repnum2.txt'
->>>>>>> main
 
 
 def get_current_date_time():
@@ -43,7 +38,7 @@ def read_last_report_number(file_path):
         return 0
 
     last_number = 0
-    with open(file_path, 'r') as report_file:
+    with open(file_path, 'r', encoding='utf-8', errors='ignore') as report_file:
         for line in report_file:
             word = line.split()
             if len(word) >= 3 and word[2].isdigit():
@@ -67,8 +62,31 @@ def get_next_report_number(current_number):
 
 def append_report_number(file_path, report_number):
     cur_date, cur_time = get_current_date_time()
-    with open(file_path, 'a') as report_file:
+    with open(file_path, 'a', encoding='utf-8') as report_file:
         report_file.write('%10s  %8s %6d\n' % (cur_date, cur_time, report_number))
+
+
+def read_user_command():
+    try:
+        return input('Press Enter for next report number or type q to exit: ').strip().lower()
+    except EOFError:
+        if os.name != 'nt':
+            print('\nNo interactive input stream detected. Exiting program.')
+            return 'q'
+
+        print('\nStandard input is unavailable. Using keyboard mode.')
+        print("Press Enter to generate a number, or press q to quit.")
+
+        import msvcrt
+
+        while True:
+            key = msvcrt.getwch().lower()
+            if key in ('\r', '\n'):
+                print('')
+                return ''
+            if key == 'q':
+                print('q')
+                return 'q'
 
 
 def main():
@@ -82,15 +100,12 @@ def main():
     report_number = read_last_report_number(TARGET_FILE)
 
     while True:
-<<<<<<< codex/update-report-number-generation-process-99aauc
+        user_input = read_user_command()
         try:
             user_input = input('Press Enter for next report number or type q to exit: ').strip().lower()
         except EOFError:
             print('\nNo input stream detected. Exiting program.')
             break
-=======
-        user_input = input('Press Enter for next report number or type q to exit: ').strip().lower()
->>>>>>> main
 
         if user_input == 'q':
             break
