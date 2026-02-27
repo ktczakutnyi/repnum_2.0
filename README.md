@@ -1,5 +1,3 @@
-# repnum_2.0
-```markdown
 # 🌟 OEMA Calibration Report Number Generator 🌟
 ### *a tiny utility that prevents technicians from summoning duplicate paperwork*
 
@@ -129,15 +127,12 @@ No IT ticket needed.
 Open a terminal in the folder containing the script and run:
 
 ```
-
-python report_number_generator.py
-
+python repnum2.py
 ```
 
 You will see:
 
 ```
-
 Calibration Report Number Generator - Version 2.0
 
 How this works:
@@ -145,6 +140,9 @@ How this works:
 * Existing report history is copied from repnum.txt to repnum2.txt once (if needed).
 * Press Enter to generate and save the next report number.
 * Type q and press Enter to quit, or close the window to exit.
+
+Working log file: .../repnum2.txt
+Last saved report number: ####
 
 ```
 
@@ -161,17 +159,14 @@ How this works:
 Example:
 
 ```
-
 Press Enter for next report number or type q to exit:
-
-```
-
-(press Enter)
-
-```
-
 The next report number in the sequence is 1046
 
+Press Enter for next report number or type q to exit:
+The next report number in the sequence is 1047
+
+Press Enter for next report number or type q to exit: q
+Program closed.
 ```
 
 ---
@@ -252,6 +247,15 @@ If someone edited the file manually and broke spacing, the parser may ignore it.
 You probably double-clicked it.  
 Run it from a terminal instead.
 
+### It opens and closes immediately
+This usually means the script was launched outside an interactive terminal input stream.
+
+Use PowerShell or Command Prompt and run:
+
+```
+python repnum2.py
+```
+
 ---
 
 ## 🧯 Important Operational Rule
@@ -300,4 +304,3 @@ Which, in radiation work, matters more than almost anything.
 
 Happy calibrating.
 Stay ALARA ☢️
-```

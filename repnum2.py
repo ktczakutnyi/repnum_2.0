@@ -75,7 +75,7 @@ def read_user_command():
             return 'q'
 
         print('\nStandard input is unavailable. Using keyboard mode.')
-        print("Press Enter to generate a number, or press q to quit.")
+        print('Press Enter to generate a number, or press q to quit.')
 
         import msvcrt
 
@@ -98,14 +98,11 @@ def main():
 
     copy_existing_report_data(SOURCE_FILE, TARGET_FILE)
     report_number = read_last_report_number(TARGET_FILE)
+    print('Working log file: %s' % TARGET_FILE)
+    print('Last saved report number: %d\n' % report_number)
 
     while True:
         user_input = read_user_command()
-        try:
-            user_input = input('Press Enter for next report number or type q to exit: ').strip().lower()
-        except EOFError:
-            print('\nNo input stream detected. Exiting program.')
-            break
 
         if user_input == 'q':
             break
@@ -117,6 +114,8 @@ def main():
             continue
 
         print("Please press Enter to generate the next number, or type 'q' to quit.")
+
+    print('Program closed.')
 
 
 if __name__ == '__main__':
