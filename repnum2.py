@@ -20,10 +20,20 @@
 import os
 import shutil
 import time
+import errno
+import sys
+
+if sys.version_info[0] < 3:
+    import __builtin__ as builtins
+else:
+    import builtins
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_FILE = os.path.join(BASE_DIR, 'repnum.txt')
 TARGET_FILE = os.path.join(BASE_DIR, 'repnum2.txt')
+LOCK_FILE = TARGET_FILE + '.lock'
+LOCK_TIMEOUT_SECONDS = 30
+LOCK_STALE_SECONDS = 120
 
 
 def get_current_date_time():
@@ -60,6 +70,65 @@ def copy_existing_report_data(source_path, target_path):
         open(target_path, 'a').close()
 
 
+def write_lock_owner(lock_fd):
+    try:
+        lock_owner = str(os.getpid())
+        try:
+            os.write(lock_fd, lock_owner.encode('utf-8'))
+        except AttributeError:
+            os.write(lock_fd, lock_owner)
+    except Exception:
+        pass
+
+
+def try_create_lock(lock_path):
+    try:
+        lock_fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except OSError:
+        if getattr(sys.exc_info()[1], 'errno', None) == errno.EEXIST:
+            return False
+        raise
+
+    try:
+        write_lock_owner(lock_fd)
+    finally:
+        os.close(lock_fd)
+    return True
+
+
+def is_lock_stale(lock_path, stale_seconds):
+    try:
+        lock_age_seconds = time.time() - os.path.getmtime(lock_path)
+    except OSError:
+        return False
+    return lock_age_seconds > stale_seconds
+
+
+def acquire_file_lock(lock_path, timeout_seconds, stale_seconds):
+    start_time = time.time()
+    while True:
+        if try_create_lock(lock_path):
+            return True
+
+        if is_lock_stale(lock_path, stale_seconds):
+            try:
+                os.remove(lock_path)
+            except OSError:
+                pass
+
+        if (time.time() - start_time) >= timeout_seconds:
+            return False
+
+        time.sleep(0.2)
+
+
+def release_file_lock(lock_path):
+    try:
+        os.remove(lock_path)
+    except OSError:
+        pass
+
+
 def get_next_report_number(current_number):
     return current_number + 1
 
@@ -73,11 +142,35 @@ def append_report_number(file_path, report_number):
         report_file.close()
 
 
-def get_text_input(prompt):
+def get_and_append_next_report_number(source_path, target_path, lock_path):
+    if not acquire_file_lock(lock_path, LOCK_TIMEOUT_SECONDS, LOCK_STALE_SECONDS):
+        return None
+
     try:
-        return raw_input(prompt)
-    except NameError:
-        return input(prompt)
+        copy_existing_report_data(source_path, target_path)
+        current_number = read_last_report_number(target_path)
+        next_number = get_next_report_number(current_number)
+        append_report_number(target_path, next_number)
+        return next_number
+    finally:
+        release_file_lock(lock_path)
+
+
+def get_last_saved_report_number(source_path, target_path, lock_path):
+    if not acquire_file_lock(lock_path, LOCK_TIMEOUT_SECONDS, LOCK_STALE_SECONDS):
+        return None
+
+    try:
+        copy_existing_report_data(source_path, target_path)
+        return read_last_report_number(target_path)
+    finally:
+        release_file_lock(lock_path)
+
+
+def get_text_input(prompt):
+    if hasattr(builtins, 'raw_input'):
+        return builtins.raw_input(prompt)
+    return builtins.input(prompt)
 
 
 def read_windows_key(msvcrt_module):
@@ -123,8 +216,11 @@ def main():
     print('- Press Enter to generate and save the next report number.')
     print('- Type q and press Enter to quit, or close the window to exit.\n')
 
-    copy_existing_report_data(SOURCE_FILE, TARGET_FILE)
-    report_number = read_last_report_number(TARGET_FILE)
+    report_number = get_last_saved_report_number(SOURCE_FILE, TARGET_FILE, LOCK_FILE)
+    if report_number is None:
+        print('Unable to acquire shared lock at startup. Please restart the program.')
+        return
+
     print('Working log file: %s' % TARGET_FILE)
     print('Last saved report number: %d\n' % report_number)
 
@@ -135,9 +231,11 @@ def main():
             break
 
         if user_input == '':
-            report_number = get_next_report_number(report_number)
-            append_report_number(TARGET_FILE, report_number)
-            print('\nThe next report number in the sequence is %d\n' % report_number)
+            next_report_number = get_and_append_next_report_number(SOURCE_FILE, TARGET_FILE, LOCK_FILE)
+            if next_report_number is None:
+                print('\nUnable to acquire shared lock. Please try again.\n')
+                continue
+            print('\nThe next report number in the sequence is %d\n' % next_report_number)
             continue
 
         print("Please press Enter to generate the next number, or type 'q' to quit.")

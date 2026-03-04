@@ -190,6 +190,9 @@ The script scans `repnum2.txt` line by line and:
 3. Uses the LAST valid number found
 4. Adds +1
 
+For each **Enter** press, this read → increment → append cycle is protected by a shared lock file (`repnum2.txt.lock`).
+This prevents duplicate numbers when two computers run the program against the same shared drive.
+
 So even if:
 - the computer crashes
 - power goes out
@@ -205,6 +208,7 @@ If no valid number exists → numbering starts at **1**.
 
 - Never overwrites existing records
 - Appends only
+- Uses a shared lock file for multi-computer concurrency safety
 - Survives reboot
 - Handles missing files
 - Handles empty files
